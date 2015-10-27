@@ -223,7 +223,7 @@ def main():
     subparsers = parser.add_subparsers(help='FireCloud Methods Repository actions')
     
     # POST arguments
-    push_parser = subparsers.add_parser('push', description='Push a method to the FireCloud Methods Repository', help='Push a method to the FireCloud Methods Repository')
+    push_parser = subparsers.add_parser('push', description='Push a method to the FireCloud Methods Repository', help='Push a method to the FireCloud Methods Repository ; Note that sub-arguments go at the end of the command-line')
     push_parser.add_argument('-s', '--namespace', dest='namespace', action='store', help='The namespace for method addition. Default value is your user login name')
     push_parser.add_argument('-n', '--name', dest='name', action='store', help='The method name to provide for method addition. Default is the name of the PAYLOAD_FILE.')
     push_parser.add_argument('-d', '--documentation', dest='docs', action='store', help='A file containing user documentation. Must be <10kb. May be plain text. Marking languages such as HTML or Github markdown are also supported')
