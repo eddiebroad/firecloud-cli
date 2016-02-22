@@ -32,6 +32,7 @@ from argparse import ArgumentParser
 import os, sys, tempfile, subprocess
 import getpass
 import json
+import datetime
 
 
 global_error_message = """    ******************************************************************************
@@ -74,11 +75,14 @@ def get_push_documentation(docsFile):
     else:
         return ""
 
-# Read the entire contents of the payload file, removing leading/trailing whitespace.
+# Read the entire contents of the payload file, removing leading/trailing whitespace (if set with strip).
 # Performing no validation (methods repo api handles this)
-def read_entire_file(inputFile):
+def read_entire_file(inputFile,withStrip=True):
     with open(inputFile) as myInput:
-        return myInput.read().strip()
+        if(withStrip):
+            return myInput.read().strip()
+        else:
+            return myInput.read()
 
 # Bring up a text editor to solicit user input for methods post.
 # First line of user text is synopsis, rest is documentation.
@@ -101,9 +105,12 @@ def get_user_synopsis():
     return synopsis
 
 
-def httpRequest(baseUrl, path, insecureSsl, method, requestBody, expectedReturnStatus):
+def httpRequest(baseUrl, path, insecureSsl, method, requestBody, expectedReturnStatus,
+    useFormHeader=False,attemptNum=1,maxNumAttempts=1):
+    if(attemptNum>maxNumAttempts):
+        fail("ERROR max number of tries attempted !  No more RETRYING !")
+        return None
     http = httplib2.Http(".cache", disable_ssl_certificate_validation=(not insecureSsl))
-
     # get the credentials for the google proxy using the application default, which
     # is described at 
     # https://developers.google.com/identity/protocols/application-default-credentials#howtheywork
@@ -112,7 +119,12 @@ def httpRequest(baseUrl, path, insecureSsl, method, requestBody, expectedReturnS
     try:
         credentials = GoogleCredentials.get_application_default()
         http = credentials.authorize(http)
-        headers = {'Content-type':  "application/json"}
+
+        if(not(useFormHeader)):
+            headers = {'Content-type':  "application/json"}
+        else:
+            headers={'Content-type':  "application/x-www-form-urlencoded"} 
+        time_of_request=datetime.datetime.now().isoformat()
         response, content = http.request(
             uri=baseUrl + path,
             method=method,
@@ -124,8 +136,17 @@ def httpRequest(baseUrl, path, insecureSsl, method, requestBody, expectedReturnS
     except Exception as e:
         print e
         fail("Could not connect to {0}{1} with method {2}".format(baseUrl,path, method))
-
-    if response.status != expectedReturnStatus:
+    statType=type(expectedReturnStatus)
+    time_of_response=datetime.datetime.now().isoformat()
+    if(statType==int):
+        #if type in, just compare ints
+        flag=(response.status != expectedReturnStatus)
+    elif(statType==list):
+        #if list compare for containment
+        flag=(not(response.status in expectedReturnStatus))
+    if flag:
+        print "Time of request : ",time_of_request
+        print "Time of response: ",time_of_response
         message = ("[ERROR] HTTP request failed\n"
                    "Request URL: " + path + "\n"
                    "Request body:\n"
@@ -133,7 +154,9 @@ def httpRequest(baseUrl, path, insecureSsl, method, requestBody, expectedReturnS
                    "Response:\n"
                    + str(response.status) + " " + response.reason + " " + content
                   )
-        fail(message)
+        print "error:"+message
+        print "\n! RETRYING ",attemptNum," of ",maxNumAttempts," !\n"
+        httpRequest(baseUrl, path, insecureSsl, method, requestBody, expectedReturnStatus,useFormHeader,attemptNum+1)
     return content
 
 # Performs the actual content POST. Fails on non-201(created) responses.

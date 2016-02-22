@@ -5,7 +5,8 @@ NOTE: it is highly recommended that you use the Dockerized version described bel
 
 ## Installation Instructions for Linux/OSX
 The FireCloud CLI requires:
-* Python 2.7+
+* Python 2.7+ (with OpenSSL 1.0.2e 3 Dec 2015 or newer)
+* datetime module
 * Pip (run `sudo easy_install pip`)
 * Virtualenv (run `sudo pip install virtualenv`)
 * Google Cloud SDK (see https://cloud.google.com/sdk/)

@@ -27,7 +27,8 @@ setup(
   entry_points = {
         'console_scripts': [
             'firecloud = firecloudcli.main:main',
-            'methods_repo = firecloudcli.methods_repo:main'
+            'methods_repo = firecloudcli.methods_repo:main',
+	    'fc_import_entities = firecloudcli.fc_import_entities:main'
         ],
     }
 )

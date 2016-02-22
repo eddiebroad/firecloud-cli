@@ -25,6 +25,7 @@ echo "Linking binaries "
 mkdir -p ~/.firecloud-cli/ubin
 ln -s ~/.firecloud-cli/venv/bin/methods_repo ~/.firecloud-cli/ubin
 ln -s ~/.firecloud-cli/venv/bin/firecloud ~/.firecloud-cli/ubin
+ln -s ~/.firecloud-cli/venv/bin/fc_import_entities ~/.firecloud-cli/ubin
 
 trap - INT TERM EXIT
 
